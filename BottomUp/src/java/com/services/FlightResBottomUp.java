@@ -1,15 +1,39 @@
 package com.services;
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+import java.util.List;
+import javax.ejb.Stateless;
+import javax.jws.WebMethod;
+import javax.jws.WebParam;
+import javax.jws.WebService;
 
-/**
- *
- * @author srinivaik
- */
+@WebService(
+serviceName = "FlightResBottomUp"
+)
+@Stateless()
 public class FlightResBottomUp {
-    
+    public FlightResBottomUp() {
+        FlightData.init();
+    }
+
+    @WebMethod(
+            operationName = "login"
+    )
+    public String login(@WebParam(name = "username") String usn, @WebParam(name = "password") String pwd) throws UnauthorizedException {
+        if (FlightData.authorize(usn, pwd)) {
+            return "SecretTokenThatAllowsAccess";
+        } else {
+            throw new UnauthorizedException("Not authorized");
+        }
+    }
+
+    @WebMethod(
+            operationName = "getItineraries"
+    )
+    public List<Itinerary> getItineraries(@WebParam(name = "authToken") String authToken, @WebParam(name = "departureCity") String depCity, @WebParam(name = "destinationCity") String destCity, @WebParam(name = "date") String date) throws UnauthorizedException {
+        if (!authToken.equals("SecretTokenThatAllowsAccess")) {
+            throw new UnauthorizedException("Not authorized");
+        } else {
+            return FlightData.getItineraries(depCity, destCity, date);
+        }
+    }
 }
